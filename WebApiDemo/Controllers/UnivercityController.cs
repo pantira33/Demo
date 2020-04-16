@@ -66,8 +66,8 @@ namespace WebApiDemo.Controllers
             using (var context = new WebApiDemoContext())
             {
                 // return remove Student
-                Student std = new Student();
-                context.Student.Remove(std);
+                Univercity std = new Univercity();
+                context.Univercity.Remove(std);
                 context.SaveChanges();
                 return context.Univercity.Where(u => u.UnivercityId == 1003).ToList();
 
