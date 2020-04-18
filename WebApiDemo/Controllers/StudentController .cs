@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
+using System.Net.Http;
+using System.Web.Http;
 using Microsoft.Extensions.Logging;
 using WebApiDemo.Entitys;
 
@@ -17,62 +20,106 @@ namespace WebApiDemo.Controllers
         [HttpGet]
         public IEnumerable<Student> Get()
         {
-            using (var context = new WebApiDemoContext())
+            using (WebApiDemoContext contexts = new WebApiDemoContext())
             {
                 // return all student
-                return context.Student.ToList();
+                return contexts.Student.ToList();
                
             }
         }
         [HttpGet("{id}")]
         public IEnumerable<Student> GetByID(int id)
         {
-            using (var context = new WebApiDemoContext())
+             using (WebApiDemoContext contexts = new WebApiDemoContext())
             {
                 // return student by id
-                return context.Student.Where(e => e.StudentId == id).ToList();
+                var context = contexts.Student.FirstOrDefault(e => e.StudentId == id);
+                if (context != null)
+                {
+                    return Request.CreateResponse(HttpStatusCode.OK, context);
+                }
+                else
+                {
+                    return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Student with id" + id.ToString() + "not found");
+                }
             }
         }
        
         [HttpPost]
-        public IEnumerable<Student> Post()
+        public HttpResponseMessage Get(int id)
         {
-            using (var context = new WebApiDemoContext())
+           try
             {
-                // return Add Student
-                Student std = new Student();
-                std.StudentId = 103;
-                std.StudentName = "C";
+                using (WebApiDemoContext contexts = new WebApiDemoContext())
+                {
+                    contexts.Student.Add(student);
+                    contexts.SaveChanges();
 
-                context.Student.Add(std);
-                context.SaveChanges();
-                return context.Student.Where(e => e.StudentId == 103).ToList();
+                    var context = Request.CreateResponse(HttpStatusCode.Created, student);
+                    context.Headers.Location = new Uri(Request.RequestUri + student.StudentId.ToString);
+                    return context;
+                }
+            }
+            catch (Exception ex)
+            {
+                Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
             }
               
         }
-        public IEnumerable<Student> Update(int id)
+       public HttpResponseMessage Put(int id,[FromBody] Student student)
         {
-            using (var context = new WebApiDemoContext())
+            try
             {
-                // return update Student
-                Student std = context.Student.Where(e => e.StudentId == 103).FirstOrDefault();
-                std.StudentName = "D";
-                context.SaveChanges();
-                return context.Student.Where(e => e.StudentId == 103).ToList();
+                using (WebApiDemoContext contexts = new WebApiDemoContext())
+                {
+                    var context = contexts.Student.FirstOrDefault(e => e.StudentId == id);
+                    if (context == null)
+                    {
+                        return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Student with id = " + id.ToString() + "not found to delet");
+                    }
+                    else
+                    {
+                        context.StudentId = student.StudentId;
+                        context.StudentName = student.StudentName;
+                        contexts.SaveChanges();
+                        return Request.CreateResponse(HttpStatusCode.OK, context);
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
             }
         }
 
-       public IEnumerable<Student> Delete(int id)
-        {
-            using (var context = new WebApiDemoContext())
-            {
-                // return remove Student
-                Student std = new Student();
-                context.Student.Remove(std);
-                context.SaveChanges();
-                return context.Student.Where(e => e.StudentId == 103).ToList();
 
+      public HttpResponseMessage Delete(int id)
+        {
+            try
+            {
+                using (WebApiDemoContext contexts = new WebApiDemoContext())
+                {
+                    var context = contexts.Student.FirstOrDefault(e => e.StudentId == id);
+                    if (context == null)
+                    {
+                        return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Student with id = " + id.ToString() + "not found to delet");
+                    }
+                    else
+                    {
+                        contexts.Student.Remove(context);
+                        contexts.SaveChanges();
+                        return Request.CreateResponse(HttpStatusCode.OK);
+                    }
+
+                }
+            }
+            catch(Exception ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
             }
         }
     }
+
+    
 }
