@@ -28,7 +28,7 @@ namespace WebApiDemo.Controllers
             }
         }
         [HttpGet("{id}")]
-        public IEnumerable<Student> GetByID(int id)
+        public HttpResponseMessage Get(int id)
         {
              using (WebApiDemoContext contexts = new WebApiDemoContext())
             {
