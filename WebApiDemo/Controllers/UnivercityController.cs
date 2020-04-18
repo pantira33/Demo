@@ -78,8 +78,8 @@ namespace WebApiDemo.Controllers
                     }
                     else
                     {
-                        context.UnivercityId = univercity.StudentId;
-                        context.UnivercityName = univercity.StudentName;
+                        context.UnivercityId = univercity.UnivercityId;
+                        context.UnivercityName = univercity.UnivercityName;
                         contexts.SaveChanges();
                         return Request.CreateResponse(HttpStatusCode.OK, context);
                     }
