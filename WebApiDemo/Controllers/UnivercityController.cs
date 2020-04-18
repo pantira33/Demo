@@ -26,7 +26,7 @@ namespace WebApiDemo.Controllers
 
             }
         }
-
+        [HttpGet("{id}")]
         public HttpResponseMessage Get(int id)
         {
             using (WebApiDemoContext contexts = new WebApiDemoContext())
