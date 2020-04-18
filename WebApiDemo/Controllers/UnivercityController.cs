@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Web.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -13,65 +16,110 @@ namespace WebApiDemo.Controllers
     public class UnivercityController : ControllerBase
     {
         
-
         [HttpGet]
         public IEnumerable<Univercity> Get()
         {
-            using (var context = new WebApiDemoContext())
+            using (WebApiDemoContext contexts = new WebApiDemoContext())
             {
-                // return all student
-                return context.Univercity.ToList();
-               
+                
+                return contexts.Univercity.ToList();
+
             }
         }
-        [HttpGet("{id}")]
-        public IEnumerable<Univercity> GetByID(int id)
+
+        public HttpResponseMessage Get(int id)
         {
-            using (var context = new WebApiDemoContext())
+            using (WebApiDemoContext contexts = new WebApiDemoContext())
             {
-                // return student by id
-                return context.Univercity.Where(u => u.UnivercityId == id).ToList();
+                
+                var context = contexts.Univercity.FirstOrDefault(e => e.UnivercityId == id);
+                if (context != null)
+                {
+                    return Request.CreateResponse(HttpStatusCode.OK, context);
+                }
+                else
+                {
+                    return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Univercity with id" + id.ToString() + "not found");
+                }
             }
         }
-        
+
         [HttpPost]
-        public IEnumerable<Univercity> Post()
+        public HttpResponseMessage Post([FromBody] Univercity univercity)
         {
-            using (var context = new WebApiDemoContext())
+            try
             {
-                // return Add Student
-                Univercity uni = new Univercity();
-                uni.UnivercityId = 1004;
-                uni.UnivercityName = "KMUTL";
+                using (WebApiDemoContext contexts = new WebApiDemoContext())
+                {
+                    contexts.Univercity.Add(univercity);
+                    contexts.SaveChanges();
 
-                context.Univercity.Add(uni);
-                context.SaveChanges();
-                return context.Univercity.Where(u => u.UnivercityId == 1004).ToList();
+                    var context = Request.CreateResponse(HttpStatusCode.Created, univercity);
+                    context.Headers.Location = new Uri(Request.RequestUri + univercity.StudentId.ToString);
+                    return context;
+                }
             }
-              
-        }
-        public IEnumerable<Univercity> Update(int id)
-        {
-            using (var context = new WebApiDemoContext())
+            catch (Exception ex)
             {
-                // return update Student
-                Univercity uni = context.Univercity.Where(u => u.UnivercityId == 1003).FirstOrDefault();
-                uni.UnivercityName = "BU";
-                context.SaveChanges();
-                return context.Univercity.Where(u => u.UnivercityId == 1003).ToList();
+                Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
             }
-        }
-        public IEnumerable<Univercity> Delete(int id)
-        {
-            using (var context = new WebApiDemoContext())
-            {
-                // return remove Student
-                Univercity std = new Univercity();
-                context.Univercity.Remove(std);
-                context.SaveChanges();
-                return context.Univercity.Where(u => u.UnivercityId == 1003).ToList();
 
+        }
+        public HttpResponseMessage Put(int id, [FromBody] Univercity univercity)
+        {
+            try
+            {
+                using (WebApiDemoContext contexts = new WebApiDemoContext())
+                {
+                    var context = contexts.Univercity.FirstOrDefault(e => e.UnivercityId == id);
+                    if (context == null)
+                    {
+                        return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Univercity with id = " + id.ToString() + "not found to delet");
+                    }
+                    else
+                    {
+                        context.UnivercityId = univercity.StudentId;
+                        context.UnivercityName = univercity.StudentName;
+                        contexts.SaveChanges();
+                        return Request.CreateResponse(HttpStatusCode.OK, context);
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
+            }
+        }
+
+
+
+        public HttpResponseMessage Delete(int id)
+        {
+            try
+            {
+                using (WebApiDemoContext contexts = new WebApiDemoContext())
+                {
+                    var context = contexts.Univercity.FirstOrDefault(e => e.UnivercityId == id);
+                    if (context == null)
+                    {
+                        return Request.CreateErrorResponse(HttpStatusCode.NotFound, "Univercity with id = " + id.ToString() + "not found to delet");
+                    }
+                    else
+                    {
+                        contexts.Univercity.Remove(context);
+                        contexts.SaveChanges();
+                        return Request.CreateResponse(HttpStatusCode.OK);
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
             }
         }
     }
+
+       
 }
