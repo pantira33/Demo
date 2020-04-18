@@ -55,7 +55,7 @@ namespace WebApiDemo.Controllers
                     contexts.SaveChanges();
 
                     var context = Request.CreateResponse(HttpStatusCode.Created, univercity);
-                    context.Headers.Location = new Uri(Request.RequestUri + univercity.StudentId.ToString);
+                    context.Headers.Location = new Uri(Request.RequestUri + univercity.UnivercityId.ToString);
                     return context;
                 }
             }
